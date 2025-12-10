@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiritual Gifts Assessment | Pagsusuri sa mga Espirituwal na Kaloob</title>
+    <title>FILIPINO EVANGELICAL METHODIST CHURCH</title>
+     <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 10px; background: #f4f6f9; color: #333; line-height: 1.6; transition: background 0.3s, color 0.3s; }
+        body.dark { background: #121212; color: #e0e0e0; }
+        h1 { text-align: center; font-size: 1.8em; margin-bottom: 10px; color: #2c3e50; }
+        body.dark h1 { color: #81a1c1; }
+        .intro { text-align: center; font-size: 1em; margin-bottom: 20px; }
+        .controls { text-align: center; margin: 20px 0; }
+        .controls button { padding: 8px 16px; margin: 0 5px; font-size: 0.9em; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        body.dark .controls button { background: #81a1c1; }
+        .progress-container { height: 12px; background: #ddd; border-radius: 6px; margin: 20px 0; overflow: hidden; }
+        body.dark .progress-container { background: #333; }
+        .progress-bar { height: 100%; width: 0%; background: #27ae60; transition: width 0.4s ease; }
+        .gift { background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        body.dark .gift { background: #1e1e1e; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .question { margin: 20px 0; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        body.dark .question { border-bottom: 1px solid #333; }
+        .tagalog { font-weight: bold; font-size: 1.1em; }
+        .english { font-size: 0.9em; color: #777; margin: 5px 0; font-style: italic; }
+        body.dark .english { color: #aaa; }
+        .options { display: flex; justify-content: space-between; flex-wrap: wrap; margin-top: 10px; gap: 10px; }
+        .options label { font-size: 1em; flex: 1 1 45px; text-align: center; }
+        .options input { transform: scale(1.4); margin-right: 8px; vertical-align: middle; }
+        button.submit { display: block; width: 90%; max-width: 400px; margin: 30px auto; padding: 15px; font-size: 1.2em; background: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        button.submit:hover { background: #219653; }
+        #result { margin: 30px 0; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; }
+        body.dark #result { background: #1e1e1e; }
+        #result h2 { background: none; color: #27ae60; text-align: center; }
+        body.dark #result h2 { color: #90ee90; }
+        #result p { font-size: 1.1em; margin: 12px 0; }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.6em; }
+            .tagalog { font-size: 1.15em; }
+            .english { font-size: 0.95em; }
+            .options { justify-content: center; }
+            .options label { flex: none; min-width: 50px; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Pagsusuri sa mga Espirituwal na Kaloob<br><small>Spiritual Gifts Assessment</small></h1>
+    <p class="intro">Sagutin nang tapat (0 = Hindi kailanman/Not true, 4 = Palagi/Always)<br>Answer honestly using the 0–4 scale</p>
+    <div class="controls">
+        <button onclick="toggleDark()">Dark Mode Off | Dark Mode On</button>
+        <button onclick="alert('Awtomatikong naka-save ang progress sa tuwing sumasagot ka!')">I-save ang Progress | Save Progress</button>
+        <button onclick="loadProgress()">I-load ang Na-save | Load Saved</button>
+<button onclick="if(confirm('Sigurado ka bang i-reset ang lahat ng sagot? | Are you sure you want to reset all answers?')) { localStorage.removeItem('giftsProgress'); location.reload(); }">I-reset ang Lahat | Reset All</button>
+    </div>
+    <div class="progress-container"><div class="progress-bar" id="progress"></div></div>
+    <form id="giftsForm"></form>
+    <div id="result"></div>
+
+    <script>
+        // Full 152 questions (same as before)
+        const questionData = [
+            "Tinutulungan ako ng Banal na Espiritu na ayusin nang maayos ang mga gawain, tao, at resources para sa layunin ng Kaharian ng Diyos.|The Holy Spirit enables me to organize tasks, people, and resources effectively for Kingdom purposes.",
+            "Gustong-gusto ko magplano at mag-coordinate ng mga proyekto para tumakbo nang maayos ang iglesia.|I love planning and coordinating projects so the church runs smoothly.",
+            "Napapansin ng iba kung paano ginagamit ng Diyos ang akin para magbigay ng kaayusan at efficiency sa grupo.|Others notice how God uses me to bring order and efficiency to group efforts.",
+            "Nakakapag-assign ako ng mga responsibilidad sa paraang nakakatulong sa paglago ng katawan ni Kristo.|I can delegate responsibilities in ways that build up the body of Christ.",
+            "Ginamit ako ng Diyos para gumawa ng sistema na sumusuporta sa ministeryo at espirituwal na paglago.|God uses me to create systems that support ministry and spiritual growth.",
+            "Nararamdaman ko ang gabay ng Espiritu sa pag-aasikaso ng mga detalyeng para sa kaluwalhatian ng Diyos.|I sense the Spirit's guidance in managing details for God's glory.",
+            "Pinatutunayan ng mga tao na ang pag-oorganisa ko ay nakakatulong sa pag-abante ng misyon ng iglesia.|People affirm that my organizational efforts help advance the church's mission.",
+            "Natural sa akin makakita ng paraan para mapabuti ang mga proseso para sa mas magandang resulta sa Kaharian.|I naturally see ways to improve processes and systems for better Kingdom results.",
+            "Tinita wag at binibigyan ako ng kakayahan ng Espiritu na magsimula ng bagong ministeryo o maabot ang mga hindi pa nararating.|The Spirit calls and equips me to pioneer new ministries or reach unreached groups.",
+            "Madali akong makibagay sa ibang kultura para magtatag ng pundasyon ng mga komunidad ng pananampalataya.|I adapt to new cultures to establish foundations for faith communities.",
+            "Ginamit na ako ng Diyos para i-equip at isugo ang iba sa misyon.|God has used me to equip and send others into mission.",
+            "Nakikita ng iba na ako’y nagtatanim ng pundasyon para sa pangmatagalang gawain sa Kaharian.|Others see me as one who lays groundwork for lasting Kingdom work.",
+            "Nabubuhay ako kapag nagtatanim o nagtatayo ng bagong anyo ng iglesia.|I thrive when planting or building new expressions of church life.",
+            "Handa akong magsakripisyo ng kaginhawahan para maipalaganap ang Ebanghelyo kung saan hindi pa kilala si Kristo.|I am willing to risk comfort to extend the Gospel where Christ is not known.",
+            "Binibigyan ako ng Espiritu ng pasanin para sa mga pioneering work na naaayon sa Kasulatan.|The Spirit burdens me for pioneering efforts aligned with Scripture.",
+            "Pinatutunayan ng Diyos ang tungkulin ko sa pamamagitan ng bunga sa mga bagong gawain.|God has confirmed my role through fruit in new works.",
+            "Ipinagkakaloob sa akin ng Diyos ang biyaya na manatiling single nang may kasiyahan para lubos na makapaglingkod sa Kanya.|God has graciously enabled me to remain single with contentment for undivided devotion to Him.",
+            "Nararamdaman ko ang kalayaan mula sa distraction ng relasyong romantiko para ituon ang pansin sa Panginoon.|I experience freedom from distraction in romantic relationships to focus on the Lord.",
+            "Tinitingnan ko ang pagiging single bilang kaloob ng Diyos na nagbibigay-daan sa mas malaking paglilingkod nang walang pagsisisi.|I view singleness as a gift from God allowing greater service without regret.",
+            "Napapansin ng iba na malaya akong makapaglingkod dahil sa ganitong tawag.|Others notice my ability to serve fully due to this calling.",
+            "Pinapanatili ako ng Espiritu sa buhay na lubos na nakatuon kay Kristo.|The Spirit sustains me in a lifestyle of focused dedication to Christ.",
+            "Masaya kong itinutuon ang enerhiya ko sa mga priyoridad ng Kaharian nang walang obligasyon sa kasal.|I joyfully direct my energies toward Kingdom priorities without marital commitments.",
+            "Hindi ko nararamdamang kulang, naniniwala ako sa biyaya ng Diyos sa larangang ito.|I do not feel incomplete, trusting God's grace in this area of singleness.",
+            "Ang pagiging single ko ay nagbibigay-daan sa akin na makapaglingkod nang buong-panahon.|My singleness frees me to serve the Lord with undivided attention.",
+            "Tinutulungan ako ng Banal na Espiritu na makilala ang katotohanan mula sa panlilinlang sa espirituwal na bagay.|The Holy Spirit helps me distinguish between truth and deception in spiritual matters.",
+            "Nararamdaman ko ang mga impluwensyang nasa likod (mula sa Diyos o hindi) sa mga sitwasyon o turo.|I sense underlying influences (godly or otherwise) in situations or teachings.",
+            "Binibigyan ako ng Diyos ng kakayahang makita kung naaayon ba ito sa Kasulatan o hindi.|God enables me to identify when something aligns with or contradicts Scripture.",
+            "Hinintay ako ng iba para sa insight ko, at nakakatulong ito sa pagprotekta o paggabay sa iglesia.|Others seek my insight, and it helps protect or guide the body of Christ.",
+            "May mga inner warning akong natatanggap mula sa Espiritu tungkol sa kamalian.|I receive inner warnings from the Spirit about falsehood or error.",
+            "Pinapabilis ako ng Espiritu na subukin ang mga espiritu at panghawakan ang mabuti (1 Juan 4:1).|The Spirit quickens me to test spirits and hold fast to what is good (1 John 4:1).",
+            "Nakakatulong ang pagkilala ko sa iglesia para maiwasan ang panlilinlang at yakapin ang katotohanan.|My discernment aids the church in avoiding deception and embracing truth.",
+            "Pinatutunayan ng Diyos ang mga insight ko sa pamamagitan ng Kasulatan at resulta.|God confirms my insights through Scripture and visible outcomes.",
+            "Binibigyan ako ng kapangyarihan ng Espiritu na natural at epektibong ibahagi ang Ebanghelyo sa mga hindi pa mananampalataya.|The Spirit empowers me to share the Gospel naturally and effectively with unbelievers.",
+            "Ginamit ako ng Diyos para ihatid ang iba kay Kristo.|God uses me to lead others to faith in Christ.",
+            "May pasanin ako sa mga naliligaw, at lumilitaw ang mga pagkakataon na magpatotoo.|I feel a burden for the lost, and opportunities arise to witness.",
+            "Positibo ang tugon ng mga hindi pa mananampalataya kapag ipinapaliwanag ko ang kaligtasan sa biyaya.|Non-believers respond positively when I explain salvation by grace.",
+            "Pinatutunayan ng iba ang bunga ng aking ebanghelismo.|Others affirm fruit from my evangelistic efforts.",
+            "Hinintay ko ang pagkakataon na maihatid ang usapan kay Kristo.|I look for opportunities to turn conversations toward Christ.",
+            "Binibigyan ako ng Espiritu ng habag at urgency para sa mga malayo sa Diyos.|The Spirit gives me compassion and urgency for those far from God.",
+            "May mga taong naligtas sa pamamagitan ng aking patotoo.|People have come to saving faith through my witness.",
+            "Ginamit ako ng Espiritu para hikayatin at pukawin ang iba tungo sa katapatan at paglago.|The Spirit uses me to encourage and motivate others toward faithfulness and growth.",
+            "Napapalakas at napupukaw ang mga tao pagkatapos ng aking payo.|People are built up and spurred to action after my counsel.",
+            "Binibigyan ako ng Diyos ng kakayahang gamitin ang Kasulatan nang praktikal para sa panghihikayat.|God enables me to apply Scripture practically for personal encouragement.",
+            "Tinutulungan ko ang iba na magtiyaga sa mga pagsubok sa pamamagitan ng biblikal na pag-asa.|I help others persevere through challenges with biblical hope.",
+            "Ang mga salita ko ay nagdudulot ng conviction at comfort na parang mula sa Panginoon.|My words bring conviction and comfort as from the Lord.",
+            "Magaling ako sa pagtulong sa mga tao na makakita ng praktikal na hakbang sa mahihirap na panahon.|I am good at helping people see practical steps forward in difficult times.",
+            "Ang mga salita ko ay nagbibigay ng confidence at nag-uudyok na magtiyaga sa pananampalataya.|My words build confidence and motivate perseverance in faith.",
+            "Gustong-gusto ko ang one-on-one na usapan na nagdudulot ng espirituwal na breakthrough.|I enjoy one-on-one conversations that lead to spiritual breakthrough.",
+            "Binibigyan ako ng Banal na Espiritu ng extraordinary na tiwala sa Diyos kahit sa mga hindi tiyak na sitwasyon.|The Holy Spirit gives me extraordinary trust in God during uncertain situations.",
+            "Nananalangin ako nang may matapang na pag-asa na kikilos ang Diyos ayon sa Kanyang pangako.|I pray with bold expectation for God to act according to His promises.",
+            "Napupukaw ang iba sa aking matibay na paniniwala sa gitna ng pagsubok.|Others are inspired by my unwavering belief during trials.",
+            "Humakbang ako sa pagsunod kapag tinatawag ako ng Diyos sa mahihirap na gawain.|I step out in obedience when God calls me to challenging tasks.",
+            "Madalas kong nakikita ang mga sagot sa panalangin na nagpapalakas ng pananampalataya ng iba.|I often see answers to prayers that strengthen the faith of others.",
+            "Napupukaw ko ang iba na mas magtiwala sa Diyos sa pamamagitan ng aking halimbawa.|I inspire others to trust God more through my example.",
+            "Ang mahihirap na sitwasyon ay nagpapalakas sa halip na nakakayayanig ng aking tiwala sa Diyos.|Difficult situations strengthen rather than shake my confidence in God.",
+            "Binibigyan ako ng Espiritu ng kakayahang makakita ng posibilidad kung saan nakikita lang ng iba ang hadlang.|The Spirit enables me to see possibilities where others see only obstacles.",
+            "Binibigyan ako ng Espiritu ng kakayahang magbigay nang masagana at masaya para sa gawain ng Diyos.|The Spirit enables me to give generously and cheerfully to God's work.",
+            "Natutuwa ako sa pagbabahagi ng resources nang may sakripisyo para matugunan ang mga pangangailangan.|I delight in sharing resources sacrificially to meet needs.",
+            "Sensitibo ako sa tunay na pangangailangan, at nagbibigay ang Diyos para sa aking pagbibigay.|I am sensitive to genuine needs, and God provides for my giving.",
+            "Maaaring hindi alam ng iba ang aking tahimik o anonymous na kontribusyon.|Others may not know about my quiet or anonymous contributions.",
+            "Ginamit ng Diyos ang aking pagbibigay para sa malaking pag-unlad ng Kanyang Kaharian.|God uses my giving to advance His Kingdom significantly.",
+            "Pinipriority ko ang simple lang na pamumuhay para magkaroon ng libreng resources sa pagbibigay.|I prioritize simplicity to free resources for generous giving.",
+            "Natutuwa ako kapag natutugunan ng aking gift ang mga urgent na pangangailangan.|I experience joy when my gifts meet pressing needs.",
+            "Palagi akong binibigyan ng Diyos kapag nagbibigay ako nang may sakripisyo.|God consistently provides when I give sacrificially.",
+            "Binibigyan ako ng Espiritu ng kakayahang maglingkod nang praktikal at suportahan ang ministeryo ng iba.|The Spirit equips me to serve practically and support others' ministries.",
+            "Natutuwa ako sa mga gawaing behind-the-scenes na nagpapagaan ng load ng iba.|I find joy in behind-the-scenes tasks that lighten others' loads.",
+            "Mabilis akong tumutulong kahit hindi napapansin.|I am quick to assist without needing recognition.",
+            "Pinagkakatiwalaan ako ng iba sa maaasahang suporta sa ministeryo.|Others rely on my reliable support in ministry settings.",
+            "Nakakapagbigay ng energy sa akin ang praktikal na paglilingkod at nakakatulong sa katawan.|Serving practically energizes me and builds up the body.",
+            "Napapansin ko ang mga praktikal na pangangailangan na hindi nakikita ng iba at tinutugunan ko.|I notice practical needs others overlook and meet them.",
+            "Mas gusto ko ang supporting roles na nagpapahintulot sa mga leader na magtagumpay.|I prefer supporting roles that enable leaders to succeed.",
+            "May malinaw na bunga ang aking paglilingkod sa iglesia.|My service produces tangible fruit in the church.",
+            "Tinutulungan ako ng Espiritu na tanggapin ang iba nang may init at maparamdam na mahalaga sila.|The Spirit enables me to welcome others warmly and make them feel valued.",
+            "Gustong-gusto ko buksan ang tahanan ko para sa biblikal na hospitality.|I love opening my home to show biblical hospitality.",
+            "Ginamit ng Diyos ang aking hospitality para buuin ang komunidad at relasyon.|God uses my hospitality to build community and relationships.",
+            "Napaparamdam sa mga tao na inaalagaan at kasali sila kapag nagho-host ako.|People feel cared for and included when I host.",
+            "Sensitibo ako sa paggawa ng paraan para makadama ng “bahay” ang mga stranger o bagong dating.|I am sensitive to making strangers or newcomers feel at home.",
+            "Ginagawa ko ang extra effort para maisama ang mga outsider sa katawan.|I go out of my way to help outsiders feel part of the body.",
+            "Ang pagbabahagi ng pagkain o espasyo ay nagpapalakas ng pananampalataya at fellowship.|Sharing meals or space strengthens faith and fellowship.",
+            "Ipinapakita ng aking hospitality ang pag-ibig ni Kristo sa praktikal na paraan.|My hospitality reflects Christ's love practically.",
+            "Binibigyan ako ng Espiritu ng pasanin na manalangin nang matiyaga para sa iba at sa mga sitwasyon.|The Spirit burdens me to pray persistently for others and situations.",
+            "Madalas akong gumugugol ng mahabang oras sa malalim na panalangin.|I often spend extended time in deep prayer.",
+            "May mga specific na pasanin akong natatanggap mula sa Diyos para sa pamamagitan.|God prompts me with specific burdens for intercession.",
+            "Nakararanas ng breakthrough ang iba pagkatapos kong manalangin para sa kanila.|Others experience breakthroughs after my prayers.",
+            "Natural at makapangyarihan ang panalangin bilang ministeryo ko.|Prayer is a powerful and natural ministry for me.",
+            "Ginigising ako ng Espiritu o pinapaprompt sa specific na oras para manalangin.|The Spirit wakes or prompts me to pray at specific times.",
+            "Nakakapagtugma ang aking panalangin sa kalooban ng Diyos sa kahanga-hangang paraan.|My prayers align with God's will in remarkable ways.",
+            "Nagtitiyaga ako sa panalangin kahit matagal ang sagot.|I persevere in prayer even when answers are delayed.",
+            "Binibigyan ako ng Espiritu ng malalim na pagkaunawa at memorya sa mga katotohanan sa Biblia.|The Spirit gives me deep understanding and retention of biblical truths.",
+            "Gustong-gusto ko ang malalim na pag-aaral, at madaling dumarating ang insights.|I enjoy in-depth study, and insights come readily.",
+            "Binibigyan ako ng Diyos ng kakayahang ikonekta ang mga ideya sa Kasulatan para sa mas malalim na pagkaunawa.|God enables me to connect scriptural ideas for greater insight.",
+            "Hinintay ako ng iba para sa accurate na impormasyon sa Biblia.|Others seek me for accurate biblical information.",
+            "Ipinapahayag ng Espiritu ang mga katotohanan sa pag-aaral at reflection.|The Spirit reveals truths through study and reflection.",
+            "Madalas akong binibigyan ng bagong insights mula sa Kasulatan.|New insights from Scripture come frequently.",
+            "Kaya kong ayusin at i-synthesize ang maraming impormasyon sa Biblia nang epektibo.|I can organize and synthesize biblical information effectively.",
+            "Nakakatulong ang aking kaalaman sa maayos na pag-equip ng iglesia.|My knowledge helps equip the church soundly.",
+            "Binibigyan ako ng Espiritu ng kakayahang gabayan ang grupo tungo sa bisyon ng Diyos.|The Spirit equips me to guide groups toward God's vision.",
+            "Natural na sumusunod sa akin ang iba sa ministeryo.|Others naturally follow my direction in ministry.",
+            "Ginamit ako ng Diyos para pukawin at paunlarin ang mga team nang naaayon sa Biblia.|God uses me to motivate and develop teams biblically.",
+            "Gumagawa ako ng desisyon nang may karunungan at fairness.|I make decisions with wisdom and fairness.",
+            "Pinagkakatiwalaan ako ng mga tao na dalhin ang mga proyekto sa matagumpay na wakas.|People trust me to lead projects to fruitful completion.",
+            "Binibigyan ko ng kapangyarihan ang iba na gamitin ang kanilang kaloob sa halip na kontrolin.|I empower others to use their gifts rather than control.",
+            "Lumalago sa pagkakaisa at tagumpay ang mga grupong pinamumunuan ko.|Groups I lead grow in unity and mission accomplishment.",
+            "Nananatili akong kalmado at decisive sa gitna ng crisis, nagtitiwala sa Espiritu.|I remain calm and decisive in crises, trusting the Spirit.",
+            "Pinupuno ako ng Espiritu ng malalim na habag sa mga nahihirapan.|The Spirit fills me with deep compassion for the suffering.",
+            "Hinintay ako sa pag-aliw sa mga nasa emosyonal o pisikal na sakit.|I am drawn to comfort those in emotional or physical pain.",
+            "Binibigyan ako ng Diyos ng kakayahang magpakita ng kabaitan kahit sa mga hindi karapat-dapat.|God enables me to show kindness even to the undeserving.",
+            "Napapansin ng iba ang aking sensitivity sa mga napapabayaan at nasasaktan.|Others notice my sensitivity to the overlooked and hurting.",
+            "Nagdudulot sa akin ng kasiyahan ang mga gawang awa na parang sa Panginoon.|Acts of mercy bring me fulfillment as unto the Lord.",
+            "Malalim akong naaantig sa pagdurusa ng iba.|I am deeply moved by others' suffering.",
+            "Madali sa akin ang magpatawad at magbigay ng grace sa mahirap na tao.|I find it easy to forgive and extend grace to difficult people.",
+            "Nagdudulot ng comfort ang presensya ko sa mga nalulungkot o nasira.|My presence brings comfort to the grieving or broken.",
+            "Minsan ginagamit ng Espiritu ang panalangin kong puno ng pananampalataya para sa supernatural na mga tanda.|The Spirit sometimes works supernatural signs through my faith-filled prayer.",
+            "Nananalangin ako nang may pag-asa sa paghilom o interbensyon, at tumutugon ang Diyos.|I pray expectantly for healing or intervention, and God responds.",
+            "Kasama ako ng iba kapag hinintay ang makapangyarihang tulong ng Diyos.|Others involve me when seeking God's miraculous help.",
+            "Matatag ang paniniwala ko sa kapangyarihan ng Diyos na makialam ngayon para sa Kanyang kaluwalhatian.|I believe strongly in God's power to intervene today for His glory.",
+            "May mga supernatural na sagot sa aking panalangin.|Supernatural answers have followed my prayers.",
+            "Humakbang ako sa pananampalataya para manalangin sa mga imposible.|I step forward in faith to pray for impossible situations.",
+            "Ginamit ako ng Diyos sa mga verifiable na paghilom o interbensyon.|God has used me in verifiable healings or interventions.",
+            "Palaging nakaturo kay Kristo at nagpapalakas sa iglesia ang mga himala sa pamamagitan ko.|Miracles through me always point to Christ and edify the church.",
+            "Tinita wag ako ng Espiritu na alagaan at gabayan ang mga mananampalataya sa mahabang panahon.|The Spirit calls me to nurture and guide believers long-term.",
+            "Nakatuon ako sa espirituwal na pangangalaga ng isang grupo.|I am committed to the spiritual care of a group.",
+            "Ginamit ako ng Diyos na protektahan at payuhan sa mga pagsubok.|God uses me to protect and counsel through challenges.",
+            "Nakikita ako ng iba bilang mapag-alaga na overseer sa komunidad ng pananampalataya.|Others see me as a caring overseer in the faith community.",
+            "Nakakapagbigay ng malalim na energy sa akin ang shepherding relationships.|Shepherding relationships energize me deeply.",
+            "Nararamdaman ko ang responsibilidad sa espirituwal na paglago ng ilang tao.|I feel responsibility for specific people's spiritual growth.",
+            "Nag-iinvest ako sa pagtulong sa mga indibidwal na mag-mature at manatiling konektado.|I invest in helping individuals mature and stay connected.",
+            "Nagkukumpisal sa akin ang mga tao at hinintay ang patuloy na gabay mula sa Biblia.|People confide in me and seek ongoing biblical guidance.",
+            "Binibigyan ako ng Espiritu ng mga mensahe para sabihin ang napapanahong katotohanan para sa pagpapalakas.|The Spirit gives me messages to speak timely truth for edification.",
+            "Ginamit ng Diyos ang mga salita ko para hikayatin, itama, o gabayan nang naaayon sa Biblia.|God uses my words to encourage, correct, or direct biblically.",
+            "Nararanasan ng iba ang conviction o pagpapalakas mula sa mga sinasabi ko.|Others experience conviction or strengthening from what I share.",
+            "Nararamdaman ko kapag gusto ng Espiritu na magsalita sa pamamagitan ko.|I sense when the Spirit wants to speak through me.",
+            "Naaayon sa Kasulatan at sinusubukan ang aking mga prophetic words.|My prophetic words align with and are tested by Scripture.",
+            "Matapang akong nagsasalita ng katotohanan kahit hindi popular.|I speak truth courageously, even when unpopular.",
+            "Malalim ang epekto sa mga nakikinig ng mga sinasabi ko sa ilalim ng prompting.|What I share under prompting deeply impacts listeners.",
+            "Tamang inihahayag ng prophetic insights ang mga puso o sitwasyon para sa layunin ng Diyos.|Prophetic insights reveal hearts or situations accurately for God's purposes.",
+            "Binibigyan ako ng Espiritu ng kakayahang ipaliwanag ang Kasulatan nang malinaw at tama.|The Spirit enables me to explain Scripture clearly and accurately.",
+            "Gustong-gusto ko maghanda ng lessons na nakakatulong sa paglago ng iba.|I enjoy preparing lessons that help others grow.",
+            "Nauunawaan, natatandaan, at ginagawa ng mga tao ang itinuturo ko.|People understand, retain, and apply what I teach.",
+            "Ginamit ng Diyos ang pagtuturo ko para magdala ng pagbabago sa buhay.|God uses my teaching to bring life change.",
+            "Iniangkop ko ang katotohanan ng Biblia sa iba’t ibang audience nang epektibo.|I adapt biblical truth for different audiences effectively.",
+            "Nararanasan ng mga nakikinig ang transformation sa aking pagtuturo.|Listeners experience transformation through my teaching.",
+            "Iniangkop ko ang style ko sa iba’t ibang pangangailangan ng pagkatuto nang tapat.|I adapt my style to various learning needs faithfully.",
+            "Nakakapagbigay ng reward sa akin ang paghahanda ng tama at engaging na lessons sa pamamagitan ng Espiritu.|Preparing sound, engaging lessons is rewarding by the Spirit.",
+            "Binibigyan ako ng Espiritu ng praktikal at maka-Diyos na insight sa komplikadong sitwasyon.|The Spirit gives me practical, godly insight in complex situations.",
+            "Hinintay ako ng iba para sa biblikal na payo sa paggawa ng desisyon.|Others seek my counsel for biblical decision-making.",
+            "Binibigyan ako ng Diyos ng kakayahang gamitin ang Kasulatan nang may karunungan sa tunay na problema.|God enables me to apply Scripture wisely to real problems.",
+            "Madalas nagre-resolve ng conflict o nagdudulot ng clarity ang aking payo.|My advice often resolves conflicts or brings clarity.",
+            "Bumabalik sa akin ang mga tao dahil napatunayang tama ang dating payo.|People return because past counsel proved sound.",
+            "Sa mahihirap na bagay, nagbibigay ako ng solusyon na nagdudulot ng kapayapaan.|In difficult matters, I offer solutions that bring peace.",
+            "Ipinapakita ng aking payo ang pananaw ng Diyos kaysa sa tao lang.|My counsel reflects God's perspective over human reasoning.",
+            "Binibigyan ako ng Espiritu ng napapanahong salita na naaayon sa banal na karunungan.|The Spirit gives me timely words that align with divine wisdom."
+        ];
+
+        const giftNames = [
+            "Pamamahala | Administration",
+            "Apostolado | Apostleship",
+            "Pagiging Walang Asawa | Celibacy",
+            "Pagkilala sa mga Espiritu | Discernment",
+            "Ebanghelismo | Evangelism",
+            "Pangaral/Pag-udyok | Exhortation",
+            "Pananampalataya | Faith",
+            "Pagbibigay | Giving",
+            "Paglilingkod/Tulong | Helps/Service",
+            "Pagiging Masigasig sa Panauhin | Hospitality",
+            "Pamamagitan sa Panalangin | Intercession",
+            "Kaalaman | Knowledge",
+            "Pamumuno | Leadership",
+            "Awa | Mercy",
+            "Mga Himala | Miracles",
+            "Pagpapastol | Pastoring/Shepherding",
+            "Prophesiya | Prophecy",
+            "Pagtuturo | Teaching",
+            "Karunungan | Wisdom"
+        ];
+
+        // Generate questions (no category titles)
+        let form = document.getElementById('giftsForm');
+        let html = '';
+        let qIndex = 1;
+        questionData.forEach((q, i) => {
+            if (i % 8 === 0) html += `<div class="gift">`;
+            let [tl, en] = q.split('|');
+            html += `
+                <div class="question">
+                    <div class="tagalog">${qIndex}. ${tl}</div>
+                    <div class="english">${en}</div>
+                    <div class="options">
+                        <label><input type="radio" name="q${qIndex}" value="0"> 0</label>
+                        <label><input type="radio" name="q${qIndex}" value="1"> 1</label>
+                        <label><input type="radio" name="q${qIndex}" value="2"> 2</label>
+                        <label><input type="radio" name="q${qIndex}" value="3"> 3</label>
+                        <label><input type="radio" name="q${qIndex}" value="4"> 4</label>
+                    </div>
+                </div>`;
+            qIndex++;
+            if (i % 8 === 7) html += '</div>';
+        });
+        html += '<button type="button" class="submit" onclick="calculateResults()">Ipakita ang mga Resulta | Show Results</button>';
+        form.innerHTML = html;
+
+        // *** FIXED: Auto-save + reliable event listener ***
+        document.getElementById('giftsForm').addEventListener('change', (e) => {
+            if (e.target.type === 'radio') {
+                updateProgress();
+                autoSaveProgress();  // Save automatically on every answer
+            }
+        });
+
+        function updateProgress() {
+            let answered = 0;
+            for (let i = 1; i <= questionData.length; i++) {
+                if (document.querySelector(`input[name="q${i}"]:checked`)) answered++;
+            }
+            let percent = (answered / questionData.length) * 100;
+            document.getElementById('progress').style.width = percent + '%';
+        }
+
+        function autoSaveProgress() {
+            let data = {};
+            for (let i = 1; i <= questionData.length; i++) {
+                let val = document.querySelector(`input[name="q${i}"]:checked`);
+                if (val) data[`q${i}`] = val.value;
+            }
+            localStorage.setItem('giftsProgress', JSON.stringify(data));
+        }
+
+        function loadProgress() {
+            let saved = localStorage.getItem('giftsProgress');
+            if (saved) {
+                let data = JSON.parse(saved);
+                for (let key in data) {
+                    let el = document.querySelector(`input[name="${key}"][value="${data[key]}"]`);
+                    if (el) el.checked = true;
+                }
+                updateProgress();
+                alert('Na-load na ang progress! | Progress loaded!');
+            } else {
+                alert('Walang naka-save na progress. | No saved progress found.');
+            }
+        }
+
+        // Dark mode
+        function toggleDark() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+        }
+        if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+
+        // Calculate results
+        function calculateResults() {
+            let scores = new Array(19).fill(0);
+            for (let i = 1; i <= questionData.length; i++) {
+                let val = document.querySelector(`input[name="q${i}"]:checked`);
+                if (val) scores[Math.floor((i-1)/8)] += parseInt(val.value);
+            }
+            let resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "<h2>Mga Resulta | Results</h2><p>(Maximum 32 bawat kaloob | Max 32 per gift)</p>";
+            let sorted = giftNames.map((name, idx) => ({name, score: scores[idx]}))
+                .sort((a,b) => b.score - a.score);
+            sorted.forEach(g => {
+                let [tl, en] = g.name.split(' | ');
+                resultDiv.innerHTML += `<p><strong>${tl} (${en}):</strong> ${g.score}/32</p>`;
+            });
+            resultDiv.style.display = "block";
+            resultDiv.scrollIntoView({ behavior: "smooth" });
+        }
+
+        // Load saved progress on page load
+        loadProgress();
+    </script>
+</body>
+</html>
